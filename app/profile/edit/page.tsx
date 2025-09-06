@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeftIcon, UserIcon, CameraIcon, SaveIcon } from 'lucide-react';
+import { ArrowLeftIcon, UserIcon, CameraIcon, SaveIcon, ShoppingCartIcon } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -36,7 +36,7 @@ interface FormErrors {
 
 export default function ProfileEditPage() {
   const router = useRouter();
-  const { user, isAuthenticated, login, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, login, isLoading: authLoading, getUserAvatar } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     username: '',
@@ -185,7 +185,24 @@ export default function ProfileEditPage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <div></div>
+            <div className="flex items-center space-x-3">
+              <Link href="/cart">
+                <Button variant="outline" size="sm" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                  Cart
+                </Button>
+              </Link>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                {user?.username}
+              </span>
+              <Link href="/dashboard" className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                <img 
+                  src={getUserAvatar()} 
+                  alt={user.username}
+                  className="w-full h-full object-cover"
+                />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

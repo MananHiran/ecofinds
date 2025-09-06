@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { getUserAvatar } from '@/lib/user-avatar';
 
 interface User {
   id: number;
@@ -18,6 +19,7 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  getUserAvatar: () => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,13 +56,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!user;
 
+  const getUserAvatarHelper = () => {
+    if (!user) return '';
+    return getUserAvatar(user);
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       isLoading,
       login,
       logout,
-      isAuthenticated
+      isAuthenticated,
+      getUserAvatar: getUserAvatarHelper
     }}>
       {children}
     </AuthContext.Provider>

@@ -12,13 +12,11 @@ import {
   UserIcon, 
   TagIcon, 
   PackageIcon,
-  CalendarIcon,
-  MapPinIcon,
-  ChevronLeftIcon,
+  CalendarIcon, 
+  MapPinIcon, 
+  ChevronLeftIcon, 
   ChevronRightIcon,
-  HeartIcon,
-  ShareIcon,
-  MessageCircleIcon,
+  ShoppingCartIcon,
   IndianRupee
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,10 +43,12 @@ interface Product {
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, getUserAvatar } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addToCartMessage, setAddToCartMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch product data from database
@@ -111,6 +111,46 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleAddToCart = async () => {
+    if (!isAuthenticated || !user) {
+      router.push('/login');
+      return;
+    }
+
+    setIsAddingToCart(true);
+    setAddToCartMessage(null);
+
+    try {
+      const response = await fetch('/api/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'user-id': user.id.toString()
+        },
+        body: JSON.stringify({
+          productId: product?.id,
+          quantity: 1
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAddToCartMessage('Product added to cart successfully!');
+        setTimeout(() => setAddToCartMessage(null), 3000);
+      } else {
+        setAddToCartMessage(data.error || 'Failed to add product to cart');
+        setTimeout(() => setAddToCartMessage(null), 5000);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      setAddToCartMessage('Network error. Please try again.');
+      setTimeout(() => setAddToCartMessage(null), 5000);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -148,7 +188,32 @@ export default function ProductDetailPage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <div className="w-6"></div>
+            <div className="flex items-center space-x-3">
+              {isAuthenticated ? (
+                <>
+                  <Link href="/cart">
+                    <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                      <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                      Cart
+                    </Button>
+                  </Link>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    {user?.username}
+                  </span>
+                  <Link href="/dashboard" className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                    <img 
+                      src={getUserAvatar()} 
+                      alt={user.username}
+                      className="w-full h-full object-cover"
+                    />
+                  </Link>
+                </>
+              ) : (
+                <Link href="/login">
+                  <Button>Get Started</Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -159,12 +224,19 @@ export default function ProductDetailPage() {
             {/* Image Carousel */}
             <div className="space-y-4">
               <div className="relative">
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
                   <img
                     src={product.images[currentImageIndex]}
                     alt={product.title}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${product.status === 'sold' ? 'opacity-50' : ''}`}
                   />
+                  {product.status === 'sold' && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <div className="bg-red-600 text-white px-6 py-3 rounded-full text-xl font-bold">
+                        SOLD
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Navigation Arrows */}
@@ -313,28 +385,45 @@ export default function ProductDetailPage() {
               {/* Action Buttons */}
               <div className="space-y-4">
                 {product.status === 'available' && (
-                  <div className="flex space-x-3">
-                    <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700">
-                      <IndianRupee className="w-4 h-4 mr-2" />
-                      Buy Now
+                  <div className="space-y-3">
+                    <Button 
+                      size="lg" 
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      onClick={handleAddToCart}
+                      disabled={isAddingToCart || !isAuthenticated}
+                    >
+                      {isAddingToCart ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Adding to Cart...
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                          Add to Cart
+                        </>
+                      )}
                     </Button>
-                    <Button size="lg" variant="outline" className="flex-1">
-                      <MessageCircleIcon className="w-4 h-4 mr-2" />
-                      Message Seller
-                    </Button>
+                    
+                    {addToCartMessage && (
+                      <div className={`p-3 rounded-lg text-sm ${
+                        addToCartMessage.includes('successfully') 
+                          ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800'
+                          : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
+                      }`}>
+                        {addToCartMessage}
+                      </div>
+                    )}
                   </div>
                 )}
                 
-                <div className="flex space-x-3">
-                  <Button variant="outline" className="flex-1">
-                    <HeartIcon className="w-4 h-4 mr-2" />
-                    Save
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    <ShareIcon className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
+                {product.status === 'sold' && (
+                  <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      This product has been sold and is no longer available for purchase.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

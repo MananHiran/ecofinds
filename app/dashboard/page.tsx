@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
-import { UserIcon, HomeIcon } from 'lucide-react';
+import { UserIcon, HomeIcon, ShoppingCartIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
@@ -53,9 +53,17 @@ export default function DashboardPage() {
               <HomeIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <Button onClick={logout} variant="outline">
-              Logout
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Link href="/cart">
+                <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                  Cart
+                </Button>
+              </Link>
+              <Button onClick={logout} variant="outline">
+                Logout
+              </Button>
+            </div>
           </div>
 
           {/* Welcome Section */}
@@ -147,7 +155,9 @@ export default function DashboardPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Review items in your cart
               </p>
-              <Button className="w-full" variant="outline">View Cart</Button>
+              <Link href="/cart" className="block">
+                <Button className="w-full" variant="outline">View Cart</Button>
+              </Link>
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">
@@ -157,7 +167,9 @@ export default function DashboardPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Track your eco-friendly purchases
               </p>
-              <Button className="w-full" variant="outline">View History</Button>
+              <Link href="/previous-purchases" className="block">
+                <Button className="w-full" variant="outline">View History</Button>
+              </Link>
             </div>
           </div>
         </div>

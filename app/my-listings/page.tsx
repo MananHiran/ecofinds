@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Logo from '@/components/Logo';
 import { 
   ArrowLeftIcon, 
@@ -14,7 +15,8 @@ import {
   PlusIcon, 
   IndianRupee,
   EditIcon,
-  TrashIcon
+  TrashIcon,
+  ShoppingCartIcon
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -30,10 +32,11 @@ interface Product {
 }
 
 export default function MyListingsPage() {
-  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, user, isLoading: authLoading, getUserAvatar } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -62,6 +65,31 @@ export default function MyListingsPage() {
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const deleteProduct = async (productId: number) => {
+    setDeletingProductId(productId);
+    try {
+      const response = await fetch(`/api/products/${productId}/delete`, {
+        method: 'DELETE',
+        headers: {
+          'user-id': user?.id.toString() || ''
+        }
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        // Remove product from local state
+        setProducts(prev => prev.filter(product => product.id !== productId));
+      } else {
+        setError(data.error || 'Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -118,12 +146,32 @@ export default function MyListingsPage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <Link href="/add-product">
-              <Button className="bg-green-600 hover:bg-green-700">
-                <PlusIcon className="w-4 h-4 mr-2" />
-                Add Product
-              </Button>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link href="/add-product">
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
+              </Link>
+              <Link href="/cart">
+                <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                  Cart
+                </Button>
+              </Link>
+              <div className="flex items-center space-x-3">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  {user?.username}
+                </span>
+                <Link href="/dashboard" className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                  <img 
+                    src={getUserAvatar()} 
+                    alt={user.username}
+                    className="w-full h-full object-cover"
+                  />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -183,14 +231,14 @@ export default function MyListingsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => (
-                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
                   <Link href={`/products/${product.id}`}>
-                    <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center relative">
                       {product.images && product.images.length > 0 ? (
                         <img 
                           src={product.images[0]} 
                           alt={product.title}
-                          className="w-full h-full object-cover"
+                          className={`w-full h-full object-cover ${product.status === 'sold' ? 'opacity-50' : ''}`}
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                             e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -198,6 +246,13 @@ export default function MyListingsPage() {
                         />
                       ) : null}
                       <PackageIcon className={`w-16 h-16 text-gray-400 ${product.images && product.images.length > 0 ? 'hidden' : ''}`} />
+                      {product.status === 'sold' && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                          <div className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            SOLD
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </Link>
                   
@@ -238,9 +293,35 @@ export default function MyListingsPage() {
                       <Button variant="outline" size="icon">
                         <EditIcon className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="icon" className="text-red-600 hover:text-red-700">
-                        <TrashIcon className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="text-red-600 hover:text-red-700"
+                            disabled={deletingProductId === product.id}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{product.title}"? This action cannot be undone and will permanently remove the product from the marketplace.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteProduct(product.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {deletingProductId === product.id ? 'Deleting...' : 'Delete'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardContent>
                 </Card>

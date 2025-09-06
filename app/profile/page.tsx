@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeftIcon, EditIcon, MapPinIcon, CalendarIcon, MailIcon, UserIcon } from 'lucide-react';
+import { ArrowLeftIcon, EditIcon, MapPinIcon, CalendarIcon, MailIcon, UserIcon, ShoppingCartIcon } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,7 +21,7 @@ interface User {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated, logout, isLoading } = useAuth();
+  const { user, isAuthenticated, logout, isLoading, getUserAvatar } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -55,9 +55,29 @@ export default function ProfilePage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <Button onClick={logout} variant="outline" size="sm">
-              Logout
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Link href="/cart">
+                <Button variant="outline" size="sm" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                  Cart
+                </Button>
+              </Link>
+              <Button onClick={logout} variant="outline" size="sm">
+                Logout
+              </Button>
+              <div className="flex items-center space-x-3">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  {user?.username}
+                </span>
+                <Link href="/dashboard" className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                  <img 
+                    src={getUserAvatar()} 
+                    alt={user.username}
+                    className="w-full h-full object-cover"
+                  />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -78,15 +98,11 @@ export default function ProfilePage() {
                   <div className="absolute inset-0 bg-black bg-opacity-20"></div>
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                     <div className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                      {user.profilePic ? (
-                        <img 
-                          src={user.profilePic} 
-                          alt={user.username}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <UserIcon className="w-12 h-12 text-gray-400" />
-                      )}
+                      <img 
+                        src={getUserAvatar()} 
+                        alt={user.username}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </div>
                 </div>

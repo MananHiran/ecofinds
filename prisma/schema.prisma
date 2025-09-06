@@ -33,6 +33,7 @@ model Product {
   description String
   category    String
   price       Float
+  status      String?   @default("available")
   createdAt   DateTime  @default(now())
 
   // Relations

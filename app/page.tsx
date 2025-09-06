@@ -4,13 +4,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
-import { SearchIcon, UserIcon, Grid3X3Icon } from "lucide-react";
+import { SearchIcon, UserIcon, Grid3X3Icon, ShoppingCartIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Home() {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading, getUserAvatar } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -53,20 +53,25 @@ export default function Home() {
                       All Products
                     </Button>
                   </Link>
+                  <Link href="/cart">
+                    <Button 
+                      variant="outline"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                      <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                      Cart
+                    </Button>
+                  </Link>
                   <div className="flex items-center space-x-3">
                     <span className="text-gray-700 dark:text-gray-300 font-medium">
                       {user?.username}
                     </span>
                     <Link href="/dashboard" className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
-                      {user?.profilePic ? (
-                        <img 
-                          src={user.profilePic} 
-                          alt={user.username}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <UserIcon className="w-8 h-8 text-gray-400" />
-                      )}
+                      <img 
+                        src={getUserAvatar()} 
+                        alt={user?.username || 'User'}
+                        className="w-full h-full object-cover"
+                      />
                     </Link>
                   </div>
                 </>

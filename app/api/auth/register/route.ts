@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@/lib/generated/prisma';
+import { generateUserAvatar } from '@/lib/avatar-generator';
 
 const prisma = new PrismaClient();
 
@@ -61,6 +62,9 @@ export async function POST(request: NextRequest) {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Generate avatar for the user
+    const generatedAvatar = generateUserAvatar(username);
+
     // Create user
     const user = await prisma.user.create({
       data: {
@@ -68,12 +72,14 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         address,
+        profilePic: generatedAvatar,
       },
       select: {
         id: true,
         username: true,
         email: true,
         address: true,
+        profilePic: true,
         createdAt: true,
       }
     });
