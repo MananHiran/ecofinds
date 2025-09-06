@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 import { UserIcon, HomeIcon } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: number;
@@ -18,25 +19,14 @@ interface User {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      // Redirect to login if no user data
+    if (!isLoading && !isAuthenticated) {
+      // Redirect to login if not authenticated
       router.push('/login');
     }
-    setIsLoading(false);
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/login');
-  };
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -49,7 +39,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null; // Will redirect to login
   }
 
@@ -63,7 +53,7 @@ export default function DashboardPage() {
               <HomeIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <Button onClick={handleLogout} variant="outline">
+            <Button onClick={logout} variant="outline">
               Logout
             </Button>
           </div>
@@ -138,7 +128,14 @@ export default function DashboardPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Manage your eco-friendly product listings
               </p>
-              <Button className="w-full">View Products</Button>
+              <div className="space-y-2">
+                <Link href="/add-product" className="block">
+                  <Button className="w-full bg-green-600 hover:bg-green-700">
+                    Add New Product
+                  </Button>
+                </Link>
+                <Button className="w-full" variant="outline">View My Products</Button>
+              </div>
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">

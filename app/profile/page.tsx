@@ -8,37 +8,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeftIcon, EditIcon, MapPinIcon, CalendarIcon, MailIcon, UserIcon } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: number;
   username: string;
   email: string;
-  address: string;
+  address?: string;
   profilePic?: string;
   createdAt: string;
 }
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      // Redirect to login if no user data
+    if (!isLoading && !isAuthenticated) {
+      // Redirect to login if not authenticated
       router.push('/login');
     }
-    setIsLoading(false);
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/login');
-  };
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -51,7 +41,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null; // Will redirect to login
   }
 
@@ -65,7 +55,7 @@ export default function ProfilePage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <Button onClick={handleLogout} variant="outline" size="sm">
+            <Button onClick={logout} variant="outline" size="sm">
               Logout
             </Button>
           </div>

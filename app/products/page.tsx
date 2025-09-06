@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Logo from '@/components/Logo';
-import { SearchIcon, ArrowLeftIcon, PackageIcon, UserIcon, DollarSignIcon, TagIcon } from 'lucide-react';
+import { SearchIcon, ArrowLeftIcon, PackageIcon, UserIcon, DollarSignIcon, TagIcon, PlusIcon } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Product {
   id: number;
@@ -27,6 +28,7 @@ interface Product {
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -148,7 +150,16 @@ export default function ProductsPage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <div></div>
+            <div>
+              {isAuthenticated && (
+                <Link href="/add-product">
+                  <Button className="bg-green-600 hover:bg-green-700">
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    Sell Item
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -198,63 +209,79 @@ export default function ProductsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  {product.image ? (
-                    <img 
-                      src={product.image} 
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <PackageIcon className="w-16 h-16 text-gray-400" />
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2">
-                      {product.title}
-                    </h3>
-                    <Badge className={getStatusColor(product.status)}>
-                      {product.status}
-                    </Badge>
+              <Link key={product.id} href={`/products/${product.id}`}>
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                  <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    {product.image ? (
+                      <img 
+                        src={product.image} 
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <PackageIcon className="w-16 h-16 text-gray-400" />
+                    )}
                   </div>
-                  
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <DollarSignIcon className="w-4 h-4 mr-1" />
-                      <span className="font-semibold text-lg text-green-600 dark:text-green-400">
-                        ${product.price}
-                      </span>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2">
+                        {product.title}
+                      </h3>
+                      <Badge className={getStatusColor(product.status)}>
+                        {product.status}
+                      </Badge>
                     </div>
                     
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <TagIcon className="w-4 h-4 mr-1" />
-                      <span>{product.category}</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <DollarSignIcon className="w-4 h-4 mr-1" />
+                        <span className="font-semibold text-lg text-green-600 dark:text-green-400">
+                          ${product.price}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <TagIcon className="w-4 h-4 mr-1" />
+                        <span>{product.category}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <UserIcon className="w-4 h-4 mr-1" />
+                        <span>by {product.owner.username}</span>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <UserIcon className="w-4 h-4 mr-1" />
-                      <span>by {product.owner.username}</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full mt-4" 
-                    disabled={product.status !== 'available'}
-                  >
-                    {product.status === 'available' ? 'View Details' : 'Sold Out'}
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Button 
+                      className="w-full mt-4" 
+                      disabled={product.status !== 'available'}
+                    >
+                      {product.status === 'available' ? 'View Details' : 'Sold Out'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
       </div>
+
+      {/* Floating Action Button for Mobile */}
+      {isAuthenticated && (
+        <div className="fixed bottom-6 right-6 z-50 md:hidden">
+          <Link href="/add-product">
+            <Button
+              size="lg"
+              className="rounded-full w-14 h-14 bg-green-600 hover:bg-green-700 shadow-lg"
+            >
+              <PlusIcon className="w-6 h-6" />
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

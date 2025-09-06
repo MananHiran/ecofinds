@@ -1,10 +1,39 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, LogOutIcon, UserIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Home() {
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/products');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -12,13 +41,41 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Logo variant="secondary" size="lg" />
-            <div className="flex space-x-4">
-              <Link href="/login">
-                <Button variant="outline">Login</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Get Started</Button>
-              </Link>
+            <div className="flex items-center space-x-4">
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center space-x-3">
+                    <Link href="/profile" className="w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                      {user?.profilePic ? (
+                        <img 
+                          src={user.profilePic} 
+                          alt={user.username}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <UserIcon className="w-6 h-6 text-gray-400" />
+                      )}
+                    </Link>
+                    <span className="text-gray-700 dark:text-gray-300 hidden sm:block">
+                      Welcome, {user?.username}!
+                    </span>
+                  </div>
+                  <Link href="/dashboard">
+                    <Button variant="outline">Dashboard</Button>
+                  </Link>
+                  <Link href="/add-product">
+                    <Button variant="outline">Sell Item</Button>
+                  </Link>
+                  <Button onClick={logout} variant="outline">
+                    <LogOutIcon className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <Button>Get Started</Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -38,11 +95,12 @@ export default function Home() {
           
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto mb-8">
-            <form action="/products" method="GET" className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <div className="relative">
                 <Input
                   type="text"
-                  name="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for eco-friendly products..."
                   className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-full focus:border-green-500 dark:focus:border-green-400 focus:ring-0"
                 />
