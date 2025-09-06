@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import Logo from "@/components/Logo";
 
 interface FormData {
   email: string;
@@ -33,6 +34,15 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      // User is already logged in, redirect to dashboard
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   // Email validation
   const validateEmail = (email: string): boolean => {
@@ -92,13 +102,11 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store user data in localStorage if remember me is checked
-        if (formData.rememberMe) {
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
+        // Store user data in localStorage for current session
+        localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Replace current page in history with dashboard
+        router.replace('/dashboard');
       } else {
         setErrors({ general: data.error || 'Login failed. Please check your credentials.' });
       }
@@ -112,10 +120,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-950">
       <div className="mx-auto w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
-        <div className="space-y-2 text-center">
-          
-          <h1 className="text-3xl font-bold">Let's Get Started</h1>
-          <p className="text-gray-500 dark:text-gray-400">Fill the form to continue</p>
+        <div className="space-y-4 text-center">
+          <Logo variant="secondary" size="lg" />
+          <div>
+            <h1 className="text-3xl font-bold">Let's Get Started</h1>
+            <p className="text-gray-500 dark:text-gray-400">Fill the form to continue</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

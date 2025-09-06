@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import Logo from "@/components/Logo";
 
 interface FormData {
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
+  address: string;
   agreeToTerms: boolean;
 }
 
@@ -23,6 +25,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  address?: string;
   agreeToTerms?: string;
   general?: string;
 }
@@ -34,7 +37,8 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    agreeToTerms: false,    
+    address: "",
+    agreeToTerms: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -150,6 +154,13 @@ export default function RegisterPage() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
+    // Address validation
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    } else if (formData.address.length < 10) {
+      newErrors.address = "Please enter a complete address (at least 10 characters)";
+    }
+
     // Terms agreement validation
     // if (!formData.agreeToTerms) {
     //   newErrors.agreeToTerms = "You must agree to the terms of use";
@@ -178,13 +189,14 @@ export default function RegisterPage() {
           username: formData.username,
           email: formData.email,
           password: formData.password,
+          address: formData.address,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        router.push('/login?message=Registration successful. Please log in.');
+        router.replace('/login?message=Registration successful. Please log in.');
       } else {
         setErrors({ general: data.error || 'Registration failed. Please try again.' });
       }
@@ -198,10 +210,12 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-950">
       <div className="mx-auto w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
-        <div className="space-y-2 text-center">
-          
-          <h1 className="text-3xl font-bold">Let's Get Started</h1>
-          <p className="text-gray-500 dark:text-gray-400">Fill the form to continue</p>
+        <div className="space-y-4 text-center">
+          <Logo variant="secondary" size="lg" />
+          <div>
+            <h1 className="text-3xl font-bold">Let's Get Started</h1>
+            <p className="text-gray-500 dark:text-gray-400">Fill the form to continue</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -286,6 +300,21 @@ export default function RegisterPage() {
             </div>
             {errors.confirmPassword && (
               <p className="text-sm text-red-500">{errors.confirmPassword}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Address</Label>
+            <Input
+              id="address"
+              type="text"
+              placeholder="Enter your complete address"
+              value={formData.address}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+              className={errors.address ? 'border-red-500' : ''}
+            />
+            {errors.address && (
+              <p className="text-sm text-red-500">{errors.address}</p>
             )}
           </div>
 

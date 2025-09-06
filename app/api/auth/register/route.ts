@@ -6,12 +6,12 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, email, password } = await request.json();
+    const { username, email, password, address } = await request.json();
 
     // Validate required fields
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !address) {
       return NextResponse.json(
-        { error: 'Username, email, and password are required' },
+        { error: 'Username, email, password, and address are required' },
         { status: 400 }
       );
     }
@@ -67,11 +67,13 @@ export async function POST(request: NextRequest) {
         username,
         email,
         password: hashedPassword,
+        address,
       },
       select: {
         id: true,
         username: true,
         email: true,
+        address: true,
         createdAt: true,
       }
     });
