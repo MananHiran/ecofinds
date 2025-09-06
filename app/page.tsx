@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
-import { SearchIcon, LogOutIcon, UserIcon } from "lucide-react";
+import { SearchIcon, LogOutIcon, UserIcon, Grid3X3Icon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -106,14 +106,33 @@ export default function Home() {
                 />
                 <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
               </div>
-              <Button 
-                type="submit" 
-                size="lg" 
-                className="mt-4 w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full"
-              >
-                Search Products
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full"
+                >
+                  Search Products
+                </Button>
+                <Link href="/products">
+                  <Button 
+                    type="button"
+                    size="lg" 
+                    variant="outline"
+                    className="w-full sm:w-auto border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 px-8 py-4 rounded-full"
+                  >
+                    <Grid3X3Icon className="w-5 h-5 mr-2" />
+                    View All Products
+                  </Button>
+                </Link>
+              </div>
             </form>
+            
+            {/* Button Descriptions */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-center sm:text-left">Search for specific products</span>
+              <span className="text-center sm:text-right">Browse all available products</span>
+            </div>
           </div>
         </div>
 

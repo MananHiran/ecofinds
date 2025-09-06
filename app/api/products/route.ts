@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate price
-    if (isNaN(price) || price <= 0 || price > 10000) {
+    if (isNaN(price) || price <= 0 || price > 1000000) {
       return NextResponse.json(
-        { error: 'Price must be between $0.01 and $10,000' },
+        { error: 'Price must be between ₹0.01 and ₹10,00,000' },
         { status: 400 }
       );
     }
@@ -140,9 +140,9 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { category: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { category: { contains: search } },
       ];
     }
 
@@ -168,8 +168,17 @@ export async function GET(request: NextRequest) {
 
     const total = await prisma.product.count({ where });
 
+    // Add status and other fields to products
+    const productsWithStatus = products.map(product => ({
+      ...product,
+      status: 'available', // Default status for all products
+      condition: 'good', // Default condition
+      location: 'Not specified', // Default location
+      tags: [], // Default empty tags
+    }));
+
     return NextResponse.json({
-      products,
+      products: productsWithStatus,
       pagination: {
         page,
         limit,
@@ -180,8 +189,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Products fetch error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   } finally {

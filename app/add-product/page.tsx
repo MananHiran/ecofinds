@@ -179,8 +179,8 @@ export default function AddProductPage() {
       const price = parseFloat(formData.price);
       if (isNaN(price) || price <= 0) {
         newErrors.price = 'Please enter a valid price greater than 0';
-      } else if (price > 10000) {
-        newErrors.price = 'Price must be less than $10,000';
+      } else if (price > 1000000) {
+        newErrors.price = 'Price must be less than ₹10,00,000';
       }
     }
 
@@ -356,17 +356,17 @@ export default function AddProductPage() {
 
                   {/* Price */}
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price (USD) *</Label>
+                    <Label htmlFor="price">Price (INR) *</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                        $
+                        ₹
                       </span>
                       <Input
                         id="price"
                         type="number"
                         step="0.01"
                         min="0"
-                        max="10000"
+                        max="1000000"
                         value={formData.price}
                         onChange={(e) => handleInputChange('price', e.target.value)}
                         placeholder="0.00"

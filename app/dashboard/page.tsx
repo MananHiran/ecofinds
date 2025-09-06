@@ -13,7 +13,7 @@ interface User {
   username: string;
   email: string;
   address?: string;
-  profilePic?: string;
+  fyPic?: string;
   createdAt: string;
 }
 

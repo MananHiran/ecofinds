@@ -10,7 +10,6 @@ import Logo from '@/components/Logo';
 import { 
   ArrowLeftIcon, 
   UserIcon, 
-  DollarSignIcon, 
   TagIcon, 
   PackageIcon,
   CalendarIcon,
@@ -19,7 +18,8 @@ import {
   ChevronRightIcon,
   HeartIcon,
   ShareIcon,
-  MessageCircleIcon
+  MessageCircleIcon,
+  IndianRupee
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -64,7 +64,7 @@ export default function ProductDetailPage() {
         title: 'Organic Cotton Tote Bag',
         description: 'This beautiful organic cotton tote bag is perfect for your daily shopping needs. Made from 100% organic cotton, it\'s durable, eco-friendly, and stylish. The bag features reinforced handles and a spacious interior that can hold up to 20kg. Perfect for grocery shopping, beach trips, or everyday use. The natural cotton material is soft to the touch and becomes more comfortable with each use. This sustainable alternative to plastic bags helps reduce environmental impact while providing a practical and fashionable solution.',
         category: 'Fashion & Accessories',
-        price: 25.99,
+        price: 2199,
         images: [
           'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop',
           'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=800&h=600&fit=crop',
@@ -260,8 +260,9 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Price */}
-              <div className="text-4xl font-bold text-green-600 dark:text-green-400">
-                ${product.price.toFixed(2)}
+              <div className="text-4xl font-bold text-green-600 dark:text-green-400 flex items-center">
+                <IndianRupee className="w-8 h-8 mr-1" />
+                {product.price.toFixed(2)}
               </div>
 
               {/* Category and Condition */}
@@ -330,7 +331,7 @@ export default function ProductDetailPage() {
                 {product.status === 'available' && (
                   <div className="flex space-x-3">
                     <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700">
-                      <DollarSignIcon className="w-4 h-4 mr-2" />
+                      <IndianRupee className="w-4 h-4 mr-2" />
                       Buy Now
                     </Button>
                     <Button size="lg" variant="outline" className="flex-1">
