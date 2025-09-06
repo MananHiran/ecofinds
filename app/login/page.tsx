@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Logo from "@/components/Logo";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FormData {
   email: string;
@@ -26,6 +27,7 @@ interface FormErrors {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { isAuthenticated, login } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -37,12 +39,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Check if user is already logged in
-    const userData = localStorage.getItem('user');
-    if (userData) {
+    if (isAuthenticated) {
       // User is already logged in, redirect to dashboard
       router.replace('/dashboard');
     }
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   // Email validation
   const validateEmail = (email: string): boolean => {
@@ -102,8 +103,8 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store user data in localStorage for current session
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Use the auth context to login
+        login(data.user);
         
         // Replace current page in history with dashboard
         router.replace('/dashboard');

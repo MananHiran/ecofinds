@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Logo from '@/components/Logo';
-import { SearchIcon, ArrowLeftIcon, PackageIcon, UserIcon, DollarSignIcon, TagIcon } from 'lucide-react';
+import { SearchIcon, ArrowLeftIcon, PackageIcon, UserIcon, TagIcon, PlusIcon, IndianRupee } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Product {
   id: number;
@@ -17,16 +18,18 @@ interface Product {
   category: string;
   price: number;
   image?: string;
-  status: 'available' | 'sold' | 'pending';
+  status?: 'available' | 'sold' | 'pending';
   owner: {
     id: number;
     username: string;
+    profilePic?: string;
   };
   createdAt: string;
 }
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,65 +46,30 @@ export default function ProductsPage() {
   const fetchProducts = async (searchTerm: string = '') => {
     setIsLoading(true);
     try {
-      // Mock data - in a real app, this would be an API call
-      const mockProducts: Product[] = [
-        {
-          id: 1,
-          title: 'Organic Cotton Tote Bag',
-          description: 'Eco-friendly reusable tote bag made from 100% organic cotton',
-          category: 'Fashion',
-          price: 15.99,
-          image: '/api/placeholder/300/200',
-          status: 'available',
-          owner: { id: 1, username: 'EcoWarrior' },
-          createdAt: '2024-01-15'
-        },
-        {
-          id: 2,
-          title: 'Bamboo Water Bottle',
-          description: 'Sustainable bamboo water bottle with stainless steel interior',
-          category: 'Lifestyle',
-          price: 24.99,
-          image: '/api/placeholder/300/200',
-          status: 'available',
-          owner: { id: 2, username: 'GreenLiving' },
-          createdAt: '2024-01-14'
-        },
-        {
-          id: 3,
-          title: 'Solar Phone Charger',
-          description: 'Portable solar charger for phones and small devices',
-          category: 'Electronics',
-          price: 45.99,
-          image: '/api/placeholder/300/200',
-          status: 'sold',
-          owner: { id: 3, username: 'SolarTech' },
-          createdAt: '2024-01-13'
-        },
-        {
-          id: 4,
-          title: 'Compostable Food Containers',
-          description: 'Set of 10 compostable food containers for meal prep',
-          category: 'Kitchen',
-          price: 12.99,
-          image: '/api/placeholder/300/200',
-          status: 'available',
-          owner: { id: 4, username: 'ZeroWaste' },
-          createdAt: '2024-01-12'
-        }
-      ];
+      // Fetch products from API
+      const params = new URLSearchParams();
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      
+      const response = await fetch(`/api/products?${params.toString()}`);
+      const data = await response.json();
 
-      // Filter products based on search term
-      const filtered = mockProducts.filter(product =>
-        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-      setProducts(mockProducts);
-      setFilteredProducts(filtered);
+      if (response.ok) {
+        // All products from API are available by default
+        const products = data.products || [];
+        
+        setProducts(products);
+        setFilteredProducts(products);
+      } else {
+        console.error('Error fetching products:', data.error);
+        setProducts([]);
+        setFilteredProducts([]);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
+      setFilteredProducts([]);
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +116,16 @@ export default function ProductsPage() {
               <ArrowLeftIcon className="h-6 w-6" />
             </Link>
             <Logo variant="secondary" size="md" />
-            <div></div>
+            <div>
+              {isAuthenticated && (
+                <Link href="/add-product">
+                  <Button className="bg-green-600 hover:bg-green-700">
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    Sell Item
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -188,73 +165,111 @@ export default function ProductsPage() {
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No products found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {searchQuery ? `No products match your search for "${searchQuery}"` : 'No products available at the moment'}
-            </p>
-            <Button onClick={() => setSearchQuery('')} variant="outline">
-              Clear Search
-            </Button>
+             <p className="text-gray-600 dark:text-gray-400 mb-6">
+               {searchQuery ? `No products match your search for "${searchQuery}"` : 'No eco-friendly products are currently available. Be the first to list a product!'}
+             </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {searchQuery ? (
+                <Button onClick={() => setSearchQuery('')} variant="outline">
+                  Clear Search
+                </Button>
+              ) : (
+                <>
+                  {isAuthenticated && (
+                    <Link href="/add-product">
+                      <Button className="bg-green-600 hover:bg-green-700">
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        Add First Product
+                      </Button>
+                    </Link>
+                  )}
+                  <Button onClick={() => setSearchQuery('')} variant="outline">
+                    Refresh
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  {product.image ? (
-                    <img 
-                      src={product.image} 
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <PackageIcon className="w-16 h-16 text-gray-400" />
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2">
-                      {product.title}
-                    </h3>
-                    <Badge className={getStatusColor(product.status)}>
-                      {product.status}
-                    </Badge>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <DollarSignIcon className="w-4 h-4 mr-1" />
-                      <span className="font-semibold text-lg text-green-600 dark:text-green-400">
-                        ${product.price}
-                      </span>
+              <Link key={product.id} href={`/products/${product.id}`}>
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                   <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                     {product.image ? (
+                       <img 
+                         src={product.image} 
+                         alt={product.title}
+                         className="w-full h-full object-cover"
+                         onError={(e) => {
+                           // Hide image and show icon if image fails to load
+                           e.currentTarget.style.display = 'none';
+                           e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                         }}
+                       />
+                     ) : null}
+                     <PackageIcon className={`w-16 h-16 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+                   </div>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2">
+                        {product.title}
+                      </h3>
+                      <Badge className={getStatusColor(product.status || 'available')}>
+                        {product.status || 'available'}
+                      </Badge>
                     </div>
                     
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
+                    
+                    <div className="space-y-2">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <TagIcon className="w-4 h-4 mr-1" />
-                      <span>{product.category}</span>
+                      <IndianRupee className="w-4 h-4 mr-1" />
+                       <span className="font-semibold text-lg text-green-600 dark:text-green-400">
+                         ₹{product.price.toLocaleString()}
+                       </span>
+                    </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <TagIcon className="w-4 h-4 mr-1" />
+                        <span>{product.category}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <UserIcon className="w-4 h-4 mr-1" />
+                        <span>by {product.owner.username}</span>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <UserIcon className="w-4 h-4 mr-1" />
-                      <span>by {product.owner.username}</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full mt-4" 
-                    disabled={product.status !== 'available'}
-                  >
-                    {product.status === 'available' ? 'View Details' : 'Sold Out'}
-                  </Button>
-                </CardContent>
-              </Card>
+                     <Button 
+                       className="w-full mt-4" 
+                       disabled={(product.status || 'available') !== 'available'}
+                     >
+                       {(product.status || 'available') === 'available' ? 'View Details' : 'Sold Out'}
+                     </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
       </div>
+
+      {/* Floating Action Button for Mobile */}
+      {isAuthenticated && (
+        <div className="fixed bottom-6 right-6 z-50 md:hidden">
+          <Link href="/add-product">
+            <Button
+              size="lg"
+              className="rounded-full w-14 h-14 bg-green-600 hover:bg-green-700 shadow-lg"
+            >
+              <PlusIcon className="w-6 h-6" />
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

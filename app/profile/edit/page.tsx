@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeftIcon, UserIcon, CameraIcon, SaveIcon } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: number;
   username: string;
   email: string;
-  address: string;
+  address?: string;
   profilePic?: string;
   createdAt: string;
 }
@@ -35,8 +36,7 @@ interface FormErrors {
 
 export default function ProfileEditPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated, login, isLoading: authLoading } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     username: '',
@@ -47,26 +47,20 @@ export default function ProfileEditPage() {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUser(user);
+    if (!authLoading && !isAuthenticated) {
+      // Redirect to login if not authenticated
+      router.push('/login');
+    } else if (user) {
       setFormData({
         username: user.username || '',
         address: user.address || '',
         profilePic: user.profilePic || '',
-      
       });
       if (user.profilePic) {
         setImagePreview(user.profilePic);
       }
-    } else {
-      // Redirect to login if no user data
-      router.push('/login');
     }
-    setIsLoading(false);
-  }, [router]);
+  }, [isAuthenticated, authLoading, user, router]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -151,9 +145,8 @@ export default function ProfileEditPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Update local storage with new user data
-        const updatedUser = { ...user, ...data.user };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        // Update auth context with new user data
+        login(data.user);
         
         // Redirect to profile page
         router.push('/profile');
@@ -167,7 +160,7 @@ export default function ProfileEditPage() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -178,7 +171,7 @@ export default function ProfileEditPage() {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null; // Will redirect to login
   }
 
