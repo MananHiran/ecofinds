@@ -51,41 +51,25 @@ export default function ProductDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-    // Fetch product data (in a real app, this would be an API call)
+    // Fetch product data from database
     fetchProduct();
   }, [params.id]);
 
   const fetchProduct = async () => {
     setIsLoading(true);
     try {
-      // Mock data - in a real app, this would be an API call
-      const mockProduct: Product = {
-        id: parseInt(params.id as string),
-        title: 'Organic Cotton Tote Bag',
-        description: 'This beautiful organic cotton tote bag is perfect for your daily shopping needs. Made from 100% organic cotton, it\'s durable, eco-friendly, and stylish. The bag features reinforced handles and a spacious interior that can hold up to 20kg. Perfect for grocery shopping, beach trips, or everyday use. The natural cotton material is soft to the touch and becomes more comfortable with each use. This sustainable alternative to plastic bags helps reduce environmental impact while providing a practical and fashionable solution.',
-        category: 'Fashion & Accessories',
-        price: 2199,
-        images: [
-          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1584917865442-de9dfe0e4e0e?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop'
-        ],
-        status: 'available',
-        owner: {
-          id: 1,
-          username: 'EcoFriendlyUser',
-          profilePic: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-        },
-        createdAt: '2024-01-15T10:30:00Z',
-        condition: 'like-new',
-        location: 'San Francisco, CA',
-        tags: ['organic', 'cotton', 'tote', 'eco-friendly', 'sustainable', 'shopping']
-      };
-      
-      setProduct(mockProduct);
+      const response = await fetch(`/api/products/${params.id}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setProduct(data.product);
+      } else {
+        console.error('Error fetching product:', data.error);
+        setProduct(null);
+      }
     } catch (error) {
       console.error('Error fetching product:', error);
+      setProduct(null);
     } finally {
       setIsLoading(false);
     }

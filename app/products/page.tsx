@@ -17,7 +17,7 @@ interface Product {
   description: string;
   category: string;
   price: number;
-  image?: string;
+  images: string[];
   status?: 'available' | 'sold' | 'pending';
   owner: {
     id: number;
@@ -170,7 +170,13 @@ export default function ProductsPage() {
              </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {searchQuery ? (
-                <Button onClick={() => setSearchQuery('')} variant="outline">
+                <Button 
+                  onClick={() => {
+                    setSearchQuery('');
+                    fetchProducts('');
+                  }} 
+                  variant="outline"
+                >
                   Clear Search
                 </Button>
               ) : (
@@ -183,9 +189,6 @@ export default function ProductsPage() {
                       </Button>
                     </Link>
                   )}
-                  <Button onClick={() => setSearchQuery('')} variant="outline">
-                    Refresh
-                  </Button>
                 </>
               )}
             </div>
@@ -196,9 +199,9 @@ export default function ProductsPage() {
               <Link key={product.id} href={`/products/${product.id}`}>
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                    <div className="aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                     {product.image ? (
+                     {product.images && product.images.length > 0 ? (
                        <img 
-                         src={product.image} 
+                         src={product.images[0]} 
                          alt={product.title}
                          className="w-full h-full object-cover"
                          onError={(e) => {
@@ -208,7 +211,7 @@ export default function ProductsPage() {
                          }}
                        />
                      ) : null}
-                     <PackageIcon className={`w-16 h-16 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+                     <PackageIcon className={`w-16 h-16 text-gray-400 ${product.images && product.images.length > 0 ? 'hidden' : ''}`} />
                    </div>
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">

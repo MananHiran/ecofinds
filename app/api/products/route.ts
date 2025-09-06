@@ -83,23 +83,24 @@ export async function POST(request: NextRequest) {
         description: description.trim(),
         category,
         price,
-        image: images[0], // Store first image as main image
         ownerId: parseInt(userId),
+        images: {
+          create: images.map((imageUrl, index) => ({
+            imageUrl,
+            isMain: index === 0, // First image is main
+          }))
+        }
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        category: true,
-        price: true,
-        image: true,
-        createdAt: true,
+      include: {
         owner: {
           select: {
             id: true,
             username: true,
             profilePic: true,
           }
+        },
+        images: {
+          orderBy: { isMain: 'desc' },
         }
       }
     });
@@ -159,6 +160,9 @@ export async function GET(request: NextRequest) {
             username: true,
             profilePic: true,
           }
+        },
+        images: {
+          orderBy: { isMain: 'desc' }, // Main image first
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -169,13 +173,16 @@ export async function GET(request: NextRequest) {
     const total = await prisma.product.count({ where });
 
     // Add status and other fields to products
-    const productsWithStatus = products.map(product => ({
-      ...product,
-      status: 'available', // Default status for all products
-      condition: 'good', // Default condition
-      location: 'Not specified', // Default location
-      tags: [], // Default empty tags
-    }));
+    const productsWithStatus = products.map(product => {
+      return {
+        ...product,
+        status: 'available', // Default status for all products
+        condition: 'good', // Default condition
+        location: 'Not specified', // Default location
+        tags: [], // Default empty tags
+        images: product.images.map(img => img.imageUrl), // Extract image URLs
+      };
+    });
 
     return NextResponse.json({
       products: productsWithStatus,

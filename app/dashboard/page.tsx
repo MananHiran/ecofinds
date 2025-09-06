@@ -134,7 +134,9 @@ export default function DashboardPage() {
                     Add New Product
                   </Button>
                 </Link>
-                <Button className="w-full" variant="outline">View My Products</Button>
+                <Link href="/my-listings" className="block">
+                  <Button className="w-full" variant="outline">View My Products</Button>
+                </Link>
               </div>
             </div>
 

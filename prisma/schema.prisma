@@ -33,14 +33,25 @@ model Product {
   description String
   category    String
   price       Float
-  image       String?
   createdAt   DateTime  @default(now())
 
   // Relations
   ownerId     Int
   owner       User      @relation(fields: [ownerId], references: [id])
+  images      ProductImage[]
   cartItems   CartItem[]
   purchases   PreviousPurchase[]
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  imageUrl  String
+  isMain    Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Cart {

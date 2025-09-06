@@ -4,13 +4,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
-import { SearchIcon, LogOutIcon, UserIcon, Grid3X3Icon } from "lucide-react";
+import { SearchIcon, UserIcon, Grid3X3Icon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Home() {
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -44,8 +44,20 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
                 <>
+                  <Link href="/products">
+                    <Button 
+                      variant="outline"
+                      className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    >
+                      <Grid3X3Icon className="w-4 h-4 mr-2" />
+                      All Products
+                    </Button>
+                  </Link>
                   <div className="flex items-center space-x-3">
-                    <Link href="/profile" className="w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      {user?.username}
+                    </span>
+                    <Link href="/dashboard" className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-green-500 dark:hover:border-green-400 transition-colors">
                       {user?.profilePic ? (
                         <img 
                           src={user.profilePic} 
@@ -53,23 +65,10 @@ export default function Home() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <UserIcon className="w-6 h-6 text-gray-400" />
+                        <UserIcon className="w-8 h-8 text-gray-400" />
                       )}
                     </Link>
-                    <span className="text-gray-700 dark:text-gray-300 hidden sm:block">
-                      Welcome, {user?.username}!
-                    </span>
                   </div>
-                  <Link href="/dashboard">
-                    <Button variant="outline">Dashboard</Button>
-                  </Link>
-                  <Link href="/add-product">
-                    <Button variant="outline">Sell Item</Button>
-                  </Link>
-                  <Button onClick={logout} variant="outline">
-                    <LogOutIcon className="w-4 h-4 mr-2" />
-                    Logout
-                  </Button>
                 </>
               ) : (
                 <Link href="/login">
@@ -106,7 +105,7 @@ export default function Home() {
                 />
                 <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
               </div>
-              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <div className="mt-4">
                 <Button 
                   type="submit" 
                   size="lg" 
@@ -114,25 +113,9 @@ export default function Home() {
                 >
                   Search Products
                 </Button>
-                <Link href="/products">
-                  <Button 
-                    type="button"
-                    size="lg" 
-                    variant="outline"
-                    className="w-full sm:w-auto border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 px-8 py-4 rounded-full"
-                  >
-                    <Grid3X3Icon className="w-5 h-5 mr-2" />
-                    View All Products
-                  </Button>
-                </Link>
               </div>
             </form>
             
-            {/* Button Descriptions */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <span className="text-center sm:text-left">Search for specific products</span>
-              <span className="text-center sm:text-right">Browse all available products</span>
-            </div>
           </div>
         </div>
 
